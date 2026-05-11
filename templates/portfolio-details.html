@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>Image Result - AgriIntel</title>
+  <meta name="description" content="">
+  <meta name="keywords" content="">
+
+  <!-- Favicons -->
+  <link href="{{ url_for('static', filename='assets/img/favicon.png') }}" rel="icon">
+  <link href="{{ url_for('static', filename='assets/img/apple-touch-icon.png') }}" rel="apple-touch-icon">
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com" rel="preconnect">
+  <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- Vendor CSS Files -->
+  <link href="{{ url_for('static', filename='assets/vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='assets/vendor/bootstrap-icons/bootstrap-icons.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='assets/vendor/aos/aos.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='assets/vendor/glightbox/css/glightbox.min.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='assets/vendor/swiper/swiper-bundle.min.css') }}" rel="stylesheet">
+
+  <!-- Main CSS File -->
+  <link href="{{ url_for('static', filename='assets/css/main.css') }}" rel="stylesheet">
+</head>
+
+<body class="portfolio-details-page">
+
+  <header id="header" class="header d-flex align-items-center sticky-top">
+    <div class="container position-relative d-flex align-items-center justify-content-between">
+      <a href="index.html" class="logo d-flex align-items-center me-auto me-xl-0">
+        <h1 class="sitename">AgriIntel</h1>
+      </a>
+      <nav id="navmenu" class="navmenu">
+        <ul>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="main">
+
+    <!-- Page Title -->
+    <div class="page-title light-background">
+      <div class="container d-lg-flex justify-content-between align-items-center">
+        <h1 class="mb-2 mb-lg-0">Image Result</h1>
+        <nav class="breadcrumbs">
+          <ol>
+            <li><a href="/">Home</a></li>
+            <li class="current">Image Result</li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+
+    <!-- Portfolio Details Section -->
+    <section id="portfolio-details" class="portfolio-details section">
+
+      <div class="container" data-aos="fade-up">
+
+        <div class="row gy-4 g-lg-5">
+
+          <!-- ── Left column: images ── -->
+          <div class="col-lg-6">
+
+            {% if gradcam_filename %}
+              <!-- Show both original + GradCAM when heatmap is available -->
+              <p class="text-muted small mb-1">Original Image</p>
+              <img src="{{ url_for('static', filename='uploads/' + filename) }}"
+                   class="img-fluid mb-3 rounded" alt="Uploaded rice leaf image">
+
+              <p class="text-muted small mb-1">
+                GradCAM Heatmap
+                <span class="text-secondary">— highlighted areas influenced the prediction</span>
+              </p>
+              <img src="{{ url_for('static', filename='gradcam/' + gradcam_filename) }}"
+                   class="img-fluid mb-4 rounded" alt="GradCAM visualization">
+
+            {% elif filename %}
+              <!-- GradCAM failed — show original only -->
+              <img src="{{ url_for('static', filename='uploads/' + filename) }}"
+                   class="img-fluid mb-4 rounded" alt="Uploaded rice leaf image">
+
+            {% else %}
+              <!-- Fallback placeholder -->
+              <img src="{{ url_for('static', filename='assets/img/about/ricelop.jpg') }}"
+                   class="img-fluid mb-4 rounded" alt="Rice leaf">
+            {% endif %}
+
+          </div>
+
+          <!-- ── Right column: result card ── -->
+          <div class="col-lg-6 d-flex align-items-center justify-content-center">
+
+            <div class="result-card w-100">
+
+              <h2 class="result-title">Analysis Result</h2>
+
+              <div class="result-grid">
+
+                <div class="result-box">
+                  <p class="label">Prediction</p>
+                  <!--
+                    Colour the prediction label based on disease type:
+                    - Healthy → green (text-success)
+                    - Blast / Blight → red (text-danger)
+                    - Brown Spot → amber (text-warning)
+                  -->
+                  {% if 'Healthy' in prediction %}
+                    <h4 class="value text-success">{{ prediction }}</h4>
+                  {% elif 'Blast' in prediction or 'Blight' in prediction %}
+                    <h4 class="value text-danger">{{ prediction }}</h4>
+                  {% else %}
+                    <h4 class="value text-warning">{{ prediction }}</h4>
+                  {% endif %}
+                </div>
+
+                <div class="result-box">
+                  <p class="label">Confidence</p>
+                  <h4 class="value">{{ confidence }}%</h4>
+                </div>
+
+                <div class="result-box full">
+                  <p class="label">Status</p>
+                  <!--
+                    Status badge — matches your actual CNN_CLASS_NAMES:
+                      "Healthy Rice Leaf"      → Good Condition  (green)
+                      "Bacterial Leaf Blight"  → Requires Attention (red)
+                      "Leaf Blast"             → Requires Attention (red)
+                      "Brown Spot"             → Moderate Risk (amber)
+                  -->
+                  {% if 'Healthy' in prediction %}
+                    <span class="status-badge" style="background:#198754;color:#fff;padding:4px 12px;border-radius:20px;">
+                      Good Condition
+                    </span>
+                  {% elif 'Blast' in prediction or 'Blight' in prediction %}
+                    <span class="status-badge" style="background:#dc3545;color:#fff;padding:4px 12px;border-radius:20px;">
+                      Requires Immediate Attention
+                    </span>
+                  {% else %}
+                    <span class="status-badge" style="background:#ffc107;color:#000;padding:4px 12px;border-radius:20px;">
+                      Moderate Risk
+                    </span>
+                  {% endif %}
+                </div>
+
+              </div>
+
+              <!-- Recommendation text from STATUS_MESSAGES -->
+              <div class="result-desc">
+                {{ status | default('Unable to determine plant status. Please upload a clearer image.') }}
+              </div>
+
+              <a href="{{ url_for('analyze_another') }}" class="btn custom-btn w-100 mt-4">
+                Analyze Another Image
+              </a>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- <footer id="footer" class="footer light-background">
+    <div class="container">
+      <div class="row gy-3">
+        <div class="col-lg-3 col-md-6 d-flex">
+          <i class="bi bi-geo-alt icon"></i>
+          <div class="address">
+            <h4>Address</h4>
+            <p>A108 Adam Street</p>
+            <p>New York, NY 535022</p>
+          </div>
+        </div>
+        <div class="col-lg-3 col-md-6 d-flex">
+          <i class="bi bi-telephone icon"></i>
+          <div>
+            <h4>Contact</h4>
+            <p>
+              <strong>Phone:</strong> <span>+1 5589 55488 55</span><br>
+              <strong>Email:</strong> <span>info@example.com</span><br>
+            </p>
+          </div>
+        </div>
+        <div class="col-lg-3 col-md-6 d-flex">
+          <i class="bi bi-clock icon"></i>
+          <div>
+            <h4>Opening Hours</h4>
+            <p>
+              <strong>Mon-Sat:</strong> <span>11AM - 23PM</span><br>
+              <strong>Sunday</strong>: <span>Closed</span>
+            </p>
+          </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+          <h4>Follow Us</h4>
+          <div class="social-links d-flex">
+            <a href="#" class="twitter"><i class="bi bi-twitter-x"></i></a>
+            <a href="#" class="facebook"><i class="bi bi-facebook"></i></a>
+            <a href="#" class="instagram"><i class="bi bi-instagram"></i></a>
+            <a href="#" class="linkedin"><i class="bi bi-linkedin"></i></a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="container copyright text-center mt-4">
+      <p>© <span>Copyright</span> <strong class="px-1 sitename">AgriIntel</strong> <span>All Rights Reserved</span></p>
+      <div class="credits">
+        Designed by <a href="https://bootstrapmade.com/">BootstrapMade</a>
+      </div>
+    </div>
+  </footer> -->
+
+  <!-- Scroll Top -->
+  <a href="#" id="scroll-top" class="scroll-top d-flex align-items-center justify-content-center">
+    <i class="bi bi-arrow-up-short"></i>
+  </a>
+
+  <!-- Preloader -->
+  <div id="preloader"></div>
+
+  <!-- Vendor JS Files -->
+  <script src="{{ url_for('static', filename='assets/vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='assets/vendor/php-email-form/validate.js') }}"></script>
+  <script src="{{ url_for('static', filename='assets/vendor/aos/aos.js') }}"></script>
+  <script src="{{ url_for('static', filename='assets/vendor/glightbox/js/glightbox.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='assets/vendor/purecounter/purecounter_vanilla.js') }}"></script>
+  <script src="{{ url_for('static', filename='assets/vendor/swiper/swiper-bundle.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='assets/vendor/imagesloaded/imagesloaded.pkgd.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='assets/vendor/isotope-layout/isotope.pkgd.min.js') }}"></script>
+
+  <!-- Main JS File -->
+  <script src="{{ url_for('static', filename='assets/js/main.js') }}"></script>
+
+</body>
+</html>
